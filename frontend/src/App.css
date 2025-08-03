@@ -1,0 +1,191 @@
+.App {
+  min-height: 100vh;
+  background-color: #f5f5f5;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .container {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 8px;
+  }
+}
+
+.page-header {
+  background: white;
+  padding: 16px 24px;
+  margin-bottom: 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 移动端页面头部适配 */
+@media (max-width: 768px) {
+  .page-header {
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    border-radius: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-header {
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    border-radius: 4px;
+  }
+}
+
+.content-wrapper {
+  background: white;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 移动端内容区域适配 */
+@media (max-width: 768px) {
+  .content-wrapper {
+    padding: 16px;
+    border-radius: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .content-wrapper {
+    padding: 12px;
+    border-radius: 4px;
+  }
+}
+
+/* 房源列表样式 */
+.property-card {
+  transition: all 0.3s ease;
+}
+
+.property-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* 移动端禁用悬停效果 */
+@media (max-width: 768px) {
+  .property-card:hover {
+    transform: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.property-image-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f5f5f5;
+  color: #d9d9d9;
+}
+
+/* 房源类型标签样式 */
+.ant-tabs-tab {
+  font-weight: 500;
+}
+
+.ant-tabs-tab-active {
+  font-weight: 600;
+}
+
+/* 移动端触摸友好的交互元素 */
+@media (max-width: 768px) {
+  .ant-btn {
+    min-height: 44px;
+    padding: 8px 16px;
+  }
+  
+  .ant-input {
+    min-height: 44px;
+    padding: 8px 12px;
+  }
+  
+  .ant-input-number {
+    min-height: 44px;
+  }
+  
+  .ant-select-selector {
+    min-height: 44px !important;
+    padding: 8px 12px !important;
+  }
+  
+  .ant-radio-button-wrapper {
+    min-height: 44px;
+    line-height: 28px;
+    padding: 8px 16px;
+  }
+  
+  .ant-upload-select-picture-card {
+    width: 100px !important;
+    height: 100px !important;
+  }
+}
+
+/* 移动端表单优化 */
+@media (max-width: 480px) {
+  .ant-form-item-label {
+    padding-bottom: 4px;
+  }
+  
+  .ant-form-item {
+    margin-bottom: 16px;
+  }
+  
+  .ant-card {
+    margin-bottom: 16px;
+  }
+  
+  .ant-card-head {
+    padding: 12px 16px;
+    min-height: auto;
+  }
+  
+  .ant-card-body {
+    padding: 16px;
+  }
+}
+
+/* 移动端图片上传优化 */
+@media (max-width: 768px) {
+  .ant-upload-list-picture-card .ant-upload-list-item {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .ant-upload-select-picture-card {
+    width: 80px !important;
+    height: 80px !important;
+  }
+}
+
+/* 移动端分页优化 */
+@media (max-width: 768px) {
+  .ant-pagination {
+    text-align: center;
+  }
+  
+  .ant-pagination-options {
+    display: none;
+  }
+  
+  .ant-pagination-jump-prev,
+  .ant-pagination-jump-next {
+    display: none;
+  }
+}
