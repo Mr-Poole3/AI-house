@@ -83,7 +83,7 @@ class RateLimitMiddleware:
             "/api/auth/login": {"max_requests": 5, "window_seconds": 300},  # 登录: 5次/5分钟
             "/api/auth/refresh": {"max_requests": 10, "window_seconds": 60},  # 刷新: 10次/分钟
             "/api/properties": {"max_requests": 100, "window_seconds": 60},  # 房源API: 100次/分钟
-            "/api/upload": {"max_requests": 20, "window_seconds": 60},  # 上传: 20次/分钟
+            "/api/upload": {"max_requests": 100, "window_seconds": 60},  # 上传: 100次/分钟
         }
         # 存储请求计数
         self.request_counts = {}

@@ -34,10 +34,12 @@ const PropertyEditForm = ({ property, onSave, onCancel, loading = false }) => {
         floor_info: property.floor_info,
         price: property.price,
         property_type: property.property_type,
+        contact_phone: property.contact_phone,
         furniture_appliances: property.furniture_appliances,
         decoration_status: property.decoration_status,
         room_count: property.room_count,
         area: property.area,
+        other_info: property.other_info,
         description: property.description
       });
     }
@@ -229,6 +231,22 @@ const PropertyEditForm = ({ property, onSave, onCancel, loading = false }) => {
             </Form.Item>
           </Col>
           
+          <Col xs={24} sm={12}>
+            <Form.Item
+              label="联系电话"
+              name="contact_phone"
+              rules={[
+                { max: 20, message: '电话号码不能超过20个字符' },
+                { 
+                  pattern: /^1[3-9]\d{9}$|^0\d{2,3}[-\s]?\d{7,8}$|^\d{7,8}$/,
+                  message: '请输入有效的电话号码'
+                }
+              ]}
+            >
+              <Input placeholder="请输入联系电话" />
+            </Form.Item>
+          </Col>
+          
           <Col span={24}>
             <Form.Item
               label="家具家电配置"
@@ -238,6 +256,20 @@ const PropertyEditForm = ({ property, onSave, onCancel, loading = false }) => {
                 placeholder="请描述家具家电配置情况"
                 rows={3}
                 maxLength={500}
+                showCount
+              />
+            </Form.Item>
+          </Col>
+          
+          <Col span={24}>
+            <Form.Item
+              label="其他信息"
+              name="other_info"
+            >
+              <TextArea
+                placeholder="请填写其他重要信息，如：交通便利情况、周边配套、停车位、物业费等"
+                rows={3}
+                maxLength={1000}
                 showCount
               />
             </Form.Item>

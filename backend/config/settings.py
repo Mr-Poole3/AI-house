@@ -22,6 +22,12 @@ class Settings(BaseSettings):
     MAX_FILE_SIZE: int = 10 * 1024 * 1024  # 10MB
     ALLOWED_EXTENSIONS: str = "jpg,jpeg,png"
     
+    # 图片压缩配置
+    IMAGE_COMPRESSION_QUALITY: int = 85  # JPEG压缩质量 (1-100)
+    IMAGE_MAX_WIDTH: int = 1920  # 图片最大宽度
+    IMAGE_MAX_HEIGHT: int = 1080  # 图片最大高度
+    ENABLE_IMAGE_COMPRESSION: bool = True  # 是否启用图片压缩
+    
     class Config:
         env_file = ".env"
 

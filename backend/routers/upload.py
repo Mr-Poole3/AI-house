@@ -9,6 +9,7 @@ from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, status
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from PIL import Image, ImageOps
+import io
 
 from ..config import settings
 from ..utils.dependencies import get_db
@@ -59,6 +60,72 @@ def ensure_upload_directory():
         os.makedirs(thumbnail_path, exist_ok=True)
     
     return upload_path
+
+def compress_image(image_content: bytes, quality: int = 85, max_width: int = 1920, max_height: int = 1080) -> bytes:
+    """
+    压缩图片
+    
+    Args:
+        image_content: 原始图片字节数据
+        quality: JPEG压缩质量 (1-100)
+        max_width: 最大宽度
+        max_height: 最大高度
+        
+    Returns:
+        bytes: 压缩后的图片字节数据
+    """
+    try:
+        # 从字节数据创建PIL图像
+        with Image.open(io.BytesIO(image_content)) as img:
+            # 获取原始尺寸
+            original_width, original_height = img.size
+            original_size = len(image_content)
+            
+            # 自动旋转图片（处理EXIF方向信息）
+            img = ImageOps.exif_transpose(img)
+            
+            # 转换为RGB模式（处理RGBA、P等格式）
+            if img.mode != 'RGB':
+                # 如果是透明图片，先创建白色背景
+                if img.mode in ('RGBA', 'LA'):
+                    background = Image.new('RGB', img.size, (255, 255, 255))
+                    if img.mode == 'RGBA':
+                        background.paste(img, mask=img.split()[-1])  # 使用alpha通道作为mask
+                    else:
+                        background.paste(img)
+                    img = background
+                else:
+                    img = img.convert('RGB')
+            
+            # 计算新尺寸（保持宽高比）
+            if original_width > max_width or original_height > max_height:
+                ratio = min(max_width / original_width, max_height / original_height)
+                new_width = int(original_width * ratio)
+                new_height = int(original_height * ratio)
+                
+                # 使用高质量重采样
+                img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+                print(f"图片尺寸压缩: {original_width}x{original_height} -> {new_width}x{new_height}")
+            
+            # 保存为JPEG格式并压缩
+            output = io.BytesIO()
+            img.save(output, format='JPEG', quality=quality, optimize=True)
+            compressed_content = output.getvalue()
+            
+            # 计算压缩效果
+            compressed_size = len(compressed_content)
+            compression_ratio = (1 - compressed_size / original_size) * 100
+            
+            print(f"图片压缩完成: {original_size} bytes -> {compressed_size} bytes "
+                  f"(压缩率: {compression_ratio:.1f}%)")
+            
+            return compressed_content
+            
+    except Exception as e:
+        print(f"图片压缩失败: {e}")
+        # 如果压缩失败，返回原始内容
+        return image_content
+
 
 def generate_thumbnail(image_path: str, thumbnail_size: tuple = (200, 200)) -> str:
     """生成缩略图"""
@@ -143,13 +210,32 @@ async def upload_images(
                     f"文件 {file.filename} 大小超过限制 ({settings.MAX_FILE_SIZE / 1024 / 1024:.1f}MB)"
                 )
             
+            # 判断是否需要压缩图片
+            final_content = file_content
+            final_mime_type = file.content_type
+            file_extension = file.filename.lower().split('.')[-1] if '.' in file.filename else 'jpg'
+            
+            if settings.ENABLE_IMAGE_COMPRESSION:
+                print(f"开始压缩图片: {file.filename}")
+                compressed_content = compress_image(
+                    image_content=file_content,
+                    quality=settings.IMAGE_COMPRESSION_QUALITY,
+                    max_width=settings.IMAGE_MAX_WIDTH,
+                    max_height=settings.IMAGE_MAX_HEIGHT
+                )
+                final_content = compressed_content
+                final_mime_type = "image/jpeg"
+                file_extension = "jpg"  # 压缩后统一为JPEG格式
+            else:
+                print(f"跳过图片压缩: {file.filename}")
+            
             # 生成唯一文件名
-            unique_filename = generate_unique_filename(file.filename)
+            unique_filename = f"{str(uuid.uuid4())}.{file_extension}"
             file_path = os.path.join(upload_dir, unique_filename)
             
             # 保存文件
             with open(file_path, "wb") as buffer:
-                buffer.write(file_content)
+                buffer.write(final_content)
             
             # 构建相对路径用于存储
             relative_path = os.path.join(settings.UPLOAD_DIR, unique_filename)
@@ -161,8 +247,8 @@ async def upload_images(
                 "original_filename": file.filename,
                 "saved_filename": unique_filename,
                 "file_path": relative_path,
-                "file_size": len(file_content),
-                "mime_type": file.content_type,
+                "file_size": len(final_content),
+                "mime_type": final_mime_type,
                 "url": f"/api/upload/images/{unique_filename}",
                 "thumbnail_url": f"/api/upload/thumbnails/{unique_filename}" if thumbnail_path else None
             })

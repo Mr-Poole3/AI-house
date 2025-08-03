@@ -1,0 +1,180 @@
+/* 
+ * Forced Colors Mode 支持
+ * 替代即将弃用的 -ms-high-contrast
+ * 参考: https://blogs.windows.com/msedgedev/2024/04/29/deprecating-ms-high-contrast/
+ */
+
+/* 强制颜色模式适配 */
+@media (forced-colors: active) {
+  /* 通用元素强制颜色适配 */
+  .property-card {
+    border: 1px solid;
+    forced-color-adjust: none;
+  }
+
+  .property-card:hover {
+    background-color: Highlight;
+    color: HighlightText;
+  }
+
+  /* 按钮强制颜色适配 */
+  .ant-btn {
+    border: 1px solid;
+    forced-color-adjust: none;
+  }
+
+  .ant-btn-primary {
+    background-color: ButtonText;
+    color: ButtonFace;
+    border-color: ButtonText;
+  }
+
+  .ant-btn:hover {
+    background-color: Highlight;
+    color: HighlightText;
+    border-color: HighlightText;
+  }
+
+  /* 输入框强制颜色适配 */
+  .ant-input,
+  .ant-input-number-input,
+  .ant-select-selector {
+    background-color: Field;
+    color: FieldText;
+    border-color: FieldText;
+    forced-color-adjust: none;
+  }
+
+  .ant-input:focus,
+  .ant-input-number-input:focus,
+  .ant-select-selector:focus {
+    border-color: Highlight;
+    box-shadow: 0 0 0 2px Highlight;
+  }
+
+  /* 卡片组件强制颜色适配 */
+  .ant-card {
+    background-color: Canvas;
+    color: CanvasText;
+    border: 1px solid CanvasText;
+    forced-color-adjust: none;
+  }
+
+  .ant-card-head {
+    background-color: Canvas;
+    color: CanvasText;
+    border-bottom: 1px solid CanvasText;
+  }
+
+  /* 表单标签强制颜色适配 */
+  .ant-form-item-label > label {
+    color: CanvasText;
+  }
+
+  /* 链接强制颜色适配 */
+  a, .ant-typography a {
+    color: LinkText;
+    forced-color-adjust: none;
+  }
+
+  a:visited, .ant-typography a:visited {
+    color: VisitedText;
+  }
+
+  a:hover, .ant-typography a:hover {
+    color: Highlight;
+  }
+
+  /* 禁用状态强制颜色适配 */
+  .ant-btn:disabled,
+  .ant-input:disabled,
+  .ant-select-disabled .ant-select-selector {
+    background-color: GrayText;
+    color: Canvas;
+    border-color: GrayText;
+    opacity: 1;
+  }
+
+  /* 选中状态强制颜色适配 */
+  .ant-checkbox-checked .ant-checkbox-inner,
+  .ant-radio-checked .ant-radio-inner {
+    background-color: Highlight;
+    border-color: Highlight;
+  }
+
+  .ant-checkbox-checked .ant-checkbox-inner::after,
+  .ant-radio-checked .ant-radio-inner::after {
+    border-color: HighlightText;
+  }
+
+  /* 表格强制颜色适配 */
+  .ant-table {
+    background-color: Canvas;
+    color: CanvasText;
+  }
+
+  .ant-table-thead > tr > th {
+    background-color: Canvas;
+    color: CanvasText;
+    border-bottom: 1px solid CanvasText;
+  }
+
+  .ant-table-tbody > tr > td {
+    border-bottom: 1px solid CanvasText;
+  }
+
+  .ant-table-tbody > tr:hover > td {
+    background-color: Highlight;
+    color: HighlightText;
+  }
+
+  /* 分页组件强制颜色适配 */
+  .ant-pagination-item {
+    background-color: Canvas;
+    border-color: CanvasText;
+  }
+
+  .ant-pagination-item a {
+    color: CanvasText;
+  }
+
+  .ant-pagination-item:hover {
+    background-color: Highlight;
+    border-color: Highlight;
+  }
+
+  .ant-pagination-item:hover a {
+    color: HighlightText;
+  }
+
+  .ant-pagination-item-active {
+    background-color: Highlight;
+    border-color: Highlight;
+  }
+
+  .ant-pagination-item-active a {
+    color: HighlightText;
+  }
+}
+
+/* 保留原有 prefers-contrast 支持 */
+@media (prefers-contrast: high) {
+  .property-card {
+    border: 2px solid;
+  }
+
+  .ant-btn {
+    border-width: 2px;
+  }
+
+  .ant-input,
+  .ant-input-number-input,
+  .ant-select-selector {
+    border-width: 2px;
+  }
+
+  .content-wrapper,
+  .page-header {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  }
+}

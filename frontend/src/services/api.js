@@ -16,7 +16,7 @@ api.interceptors.request.use(
     
     // 检查令牌是否存在且未过期
     if (token && expiresAt && Date.now() < parseInt(expiresAt)) {
-      config.headers.Authorization = `Bearer ${token}`;
+      config.headers.Authorization = `${tokenType.charAt(0).toUpperCase() + tokenType.slice(1)} ${token}`;
     }
     
     return config;

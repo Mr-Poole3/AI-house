@@ -11,6 +11,7 @@ const Upload = () => {
   const [parsedData, setParsedData] = useState(null);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [formModified, setFormModified] = useState(false);
+  const [pastedImages, setPastedImages] = useState([]);
   const formRef = useRef();
 
   const handleParseResult = (result) => {
@@ -36,9 +37,15 @@ const Upload = () => {
     console.error('解析错误:', error);
   };
 
+  const handleImagesPaste = (imageFiles) => {
+    // 将粘贴的图片文件存储到状态中
+    setPastedImages(prevImages => [...prevImages, ...imageFiles]);
+    setFormModified(true);
+  };
+
   const handleFieldChange = (fieldName, value) => {
     setFormModified(true);
-    console.log('Field changed:', fieldName, value);
+    // console.log('Field changed:', fieldName, value); // 移除调试日志
   };
 
   const handleFormSubmit = async (values) => {
@@ -62,9 +69,10 @@ const Upload = () => {
         duration: 3,
       });
       
-      // 清空表单数据和状态
+      // 清空所有状态
       setParsedData(null);
       setFormModified(false);
+      setPastedImages([]); // 清空粘贴的图片
       
       // 重置表单
       if (formRef.current) {
@@ -84,6 +92,7 @@ const Upload = () => {
   const handleReset = () => {
     setParsedData(null);
     setFormModified(false);
+    setPastedImages([]);
     if (formRef.current) {
       formRef.current.resetFields();
     }
@@ -114,6 +123,7 @@ const Upload = () => {
       <TextInput 
         onParseResult={handleParseResult}
         onParseError={handleParseError}
+        onImagesPaste={handleImagesPaste}
       />
 
       {parsedData && (
@@ -192,6 +202,7 @@ const Upload = () => {
           onSubmit={handleFormSubmit}
           onFieldChange={handleFieldChange}
           loading={submitLoading}
+          pastedImages={pastedImages}
         />
       </div>
 

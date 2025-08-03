@@ -7,13 +7,14 @@ from sqlalchemy.orm import Session
 from typing import Dict, Any, Optional, Union
 from decimal import Decimal
 import logging
+import os
 
 from ..database import get_db
 from ..models.property import PropertyType
 from ..models.user import User
 from ..schemas.property import (
     PropertyCreate, PropertyUpdate, PropertyResponse, PropertyListResponse,
-    PropertySearchParams, PropertyTextRequest, PropertyParseResponse
+    PropertySearchParams, PropertyTextRequest, PropertyParseResponse, PropertyImageResponse
 )
 from ..services.property_service import property_service
 from ..services.llm_service import llm_service
@@ -33,6 +34,25 @@ def get_username(current_user: Union[User, Dict[str, Any]]) -> str:
         return current_user.get('username', 'unknown')
     else:
         return 'unknown'
+
+
+def create_property_response_with_images(property_obj) -> PropertyResponse:
+    """创建包含图片URL的房源响应"""
+    # 使用标准的from_orm方法
+    response = PropertyResponse.from_orm(property_obj)
+    
+    # 为每个图片添加URL信息
+    if property_obj.images:
+        images_with_urls = []
+        for image in property_obj.images:
+            image_response = PropertyImageResponse.from_orm(image)
+            filename = os.path.basename(image.file_path)
+            image_response.image_url = f"/api/upload/images/{filename}"
+            image_response.thumbnail_url = f"/api/upload/thumbnails/{filename}"
+            images_with_urls.append(image_response)
+        response.images = images_with_urls
+    
+    return response
 
 
 # CRUD API端点
@@ -60,7 +80,9 @@ async def create_property(
         property_obj = property_service.create_property(db, property_data)
         
         logger.info(f"房源创建成功，ID: {property_obj.id}")
-        return PropertyResponse.from_orm(property_obj)
+        # 重新查询以确保包含图片关系
+        property_with_images = property_service.get_property_by_id(db, property_obj.id)
+        return create_property_response_with_images(property_with_images)
         
     except ValidationError as e:
         logger.error(f"房源创建验证失败: {e}")
@@ -116,7 +138,7 @@ async def get_properties(
         properties, total = property_service.search_properties(db, search_params)
         
         # 构建响应
-        property_responses = [PropertyResponse.from_orm(prop) for prop in properties]
+        property_responses = [create_property_response_with_images(prop) for prop in properties]
         
         return PropertyListResponse(
             items=property_responses,
@@ -135,110 +157,7 @@ async def get_properties(
         raise HTTPException(status_code=500, detail=f"查询房源失败: {str(e)}")
 
 
-@router.get("/{property_id}", response_model=PropertyResponse)
-async def get_property(
-    property_id: int,
-    db: Session = Depends(get_db),
-    current_user: Union[User, Dict[str, Any]] = Depends(get_current_user)
-):
-    """
-    获取房源详情API
-
-    Args:
-        property_id: 房源ID
-        db: 数据库会话
-        current_user: 当前登录用户
-
-    Returns:
-        PropertyResponse: 房源详情
-    """
-    try:
-        logger.info(f"用户 {get_username(current_user)} 查询房源详情: {property_id}")
-        
-        property_obj = property_service.get_property_by_id(db, property_id)
-        
-        return PropertyResponse.from_orm(property_obj)
-        
-    except NotFoundError as e:
-        logger.error(f"房源不存在: {e}")
-        raise HTTPException(status_code=404, detail=str(e))
-    except Exception as e:
-        logger.error(f"房源查询失败: {e}")
-        raise HTTPException(status_code=500, detail=f"查询房源失败: {str(e)}")
-
-
-@router.put("/{property_id}", response_model=PropertyResponse)
-async def update_property(
-    property_id: int,
-    property_data: PropertyUpdate,
-    db: Session = Depends(get_db),
-    current_user: Union[User, Dict[str, Any]] = Depends(get_current_user)
-):
-    """
-    更新房源API
-    
-    Args:
-        property_id: 房源ID
-        property_data: 更新的房源数据
-        db: 数据库会话
-        current_user: 当前登录用户
-        
-    Returns:
-        PropertyResponse: 更新后的房源信息
-    """
-    try:
-        logger.info(f"用户 {get_username(current_user)} 更新房源: {property_id}")
-        
-        property_obj = property_service.update_property(db, property_id, property_data)
-        
-        logger.info(f"房源更新成功，ID: {property_id}")
-        return PropertyResponse.from_orm(property_obj)
-        
-    except NotFoundError as e:
-        logger.error(f"房源不存在: {e}")
-        raise HTTPException(status_code=404, detail=str(e))
-    except ValidationError as e:
-        logger.error(f"房源更新验证失败: {e}")
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        logger.error(f"房源更新失败: {e}")
-        raise HTTPException(status_code=500, detail=f"更新房源失败: {str(e)}")
-
-
-@router.delete("/{property_id}")
-async def delete_property(
-    property_id: int,
-    db: Session = Depends(get_db),
-    current_user: Union[User, Dict[str, Any]] = Depends(get_current_user)
-):
-    """
-    删除房源API
-    
-    Args:
-        property_id: 房源ID
-        db: 数据库会话
-        current_user: 当前登录用户
-        
-    Returns:
-        dict: 删除结果
-    """
-    try:
-        logger.info(f"用户 {get_username(current_user)} 删除房源: {property_id}")
-        
-        property_service.delete_property(db, property_id)
-        
-        logger.info(f"房源删除成功，ID: {property_id}")
-        return {"message": "房源删除成功"}
-        
-    except NotFoundError as e:
-        logger.error(f"房源不存在: {e}")
-        raise HTTPException(status_code=404, detail=str(e))
-    except Exception as e:
-        logger.error(f"房源删除失败: {e}")
-        raise HTTPException(status_code=500, detail=f"删除房源失败: {str(e)}")
-
-
-# 租房/售房专门API端点
+# 租房/售房专门API端点 - 必须在/{property_id}之前定义
 
 @router.get("/rent", response_model=PropertyListResponse)
 async def get_rent_properties(
@@ -281,7 +200,7 @@ async def get_rent_properties(
             max_price=max_rent
         )
         
-        property_responses = [PropertyResponse.from_orm(prop) for prop in properties]
+        property_responses = [create_property_response_with_images(prop) for prop in properties]
         
         return PropertyListResponse(
             items=property_responses,
@@ -338,7 +257,7 @@ async def get_sale_properties(
             max_price=max_price
         )
         
-        property_responses = [PropertyResponse.from_orm(prop) for prop in properties]
+        property_responses = [create_property_response_with_images(prop) for prop in properties]
         
         return PropertyListResponse(
             items=property_responses,
@@ -352,6 +271,109 @@ async def get_sale_properties(
     except Exception as e:
         logger.error(f"售房查询失败: {e}")
         raise HTTPException(status_code=500, detail=f"查询售房失败: {str(e)}")
+
+
+@router.get("/{property_id}", response_model=PropertyResponse)
+async def get_property(
+    property_id: int,
+    db: Session = Depends(get_db),
+    current_user: Union[User, Dict[str, Any]] = Depends(get_current_user)
+):
+    """
+    获取房源详情API
+
+    Args:
+        property_id: 房源ID
+        db: 数据库会话
+        current_user: 当前登录用户
+
+    Returns:
+        PropertyResponse: 房源详情
+    """
+    try:
+        logger.info(f"用户 {get_username(current_user)} 查询房源详情: {property_id}")
+        
+        property_obj = property_service.get_property_by_id(db, property_id)
+        
+        return create_property_response_with_images(property_obj)
+        
+    except NotFoundError as e:
+        logger.error(f"房源不存在: {e}")
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        logger.error(f"房源查询失败: {e}")
+        raise HTTPException(status_code=500, detail=f"查询房源失败: {str(e)}")
+
+
+@router.put("/{property_id}", response_model=PropertyResponse)
+async def update_property(
+    property_id: int,
+    property_data: PropertyUpdate,
+    db: Session = Depends(get_db),
+    current_user: Union[User, Dict[str, Any]] = Depends(get_current_user)
+):
+    """
+    更新房源API
+    
+    Args:
+        property_id: 房源ID
+        property_data: 更新的房源数据
+        db: 数据库会话
+        current_user: 当前登录用户
+        
+    Returns:
+        PropertyResponse: 更新后的房源信息
+    """
+    try:
+        logger.info(f"用户 {get_username(current_user)} 更新房源: {property_id}")
+        
+        property_obj = property_service.update_property(db, property_id, property_data)
+        
+        logger.info(f"房源更新成功，ID: {property_id}")
+        return create_property_response_with_images(property_obj)
+        
+    except NotFoundError as e:
+        logger.error(f"房源不存在: {e}")
+        raise HTTPException(status_code=404, detail=str(e))
+    except ValidationError as e:
+        logger.error(f"房源更新验证失败: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"房源更新失败: {e}")
+        raise HTTPException(status_code=500, detail=f"更新房源失败: {str(e)}")
+
+
+@router.delete("/{property_id}")
+async def delete_property(
+    property_id: int,
+    db: Session = Depends(get_db),
+    current_user: Union[User, Dict[str, Any]] = Depends(get_current_user)
+):
+    """
+    删除房源API
+    
+    Args:
+        property_id: 房源ID
+        db: 数据库会话
+        current_user: 当前登录用户
+        
+    Returns:
+        dict: 删除结果
+    """
+    try:
+        logger.info(f"用户 {get_username(current_user)} 删除房源: {property_id}")
+        
+        property_service.delete_property(db, property_id)
+        
+        logger.info(f"房源删除成功，ID: {property_id}")
+        return {"message": "房源删除成功"}
+        
+    except NotFoundError as e:
+        logger.error(f"房源不存在: {e}")
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        logger.error(f"房源删除失败: {e}")
+        raise HTTPException(status_code=500, detail=f"删除房源失败: {str(e)}")
 
 
 # 文本解析API端点

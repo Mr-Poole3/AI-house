@@ -57,6 +57,26 @@ const PropertyList = ({ properties = [], loading = false, onPropertyClick }) => 
   };
 
   /**
+   * 转换图片URL为完整的后端URL
+   * @param {string} imageUrl - 图片URL
+   * @returns {string} 完整URL
+   */
+  const getFullImageUrl = (imageUrl) => {
+    if (!imageUrl) return '';
+    
+    // 如果已经是完整URL，直接返回
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+      return imageUrl;
+    }
+    
+    // 如果是相对URL，转换为完整的后端URL
+    const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+    const apiBaseUrl = baseUrl.replace('/api', ''); // 移除/api后缀
+    
+    return `${apiBaseUrl}${imageUrl}`;
+  };
+
+  /**
    * 获取房源主图
    * @param {Array} images - 图片列表
    * @returns {string} 主图URL
@@ -69,11 +89,15 @@ const PropertyList = ({ properties = [], loading = false, onPropertyClick }) => 
     // 查找主图
     const primaryImage = images.find(img => img.is_primary);
     if (primaryImage) {
-      return primaryImage.file_path;
+      // 优先使用image_url，如果没有则使用file_path转换
+      const imageUrl = primaryImage.image_url || `/api/upload/images/${primaryImage.file_name}`;
+      return getFullImageUrl(imageUrl);
     }
     
     // 如果没有主图，返回第一张图片
-    return images[0].file_path;
+    const firstImage = images[0];
+    const imageUrl = firstImage.image_url || `/api/upload/images/${firstImage.file_name}`;
+    return getFullImageUrl(imageUrl);
   };
 
   /**

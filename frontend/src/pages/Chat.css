@@ -1,0 +1,435 @@
+/**
+ * ChatGPT风格的聊天页面样式
+ */
+
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  background: #ffffff;
+  color: #374151;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* 顶部标题栏 */
+.chat-top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #ffffff;
+}
+
+.chat-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.service-status {
+  font-size: 12px;
+}
+
+.status-online {
+  color: #10a37f;
+}
+
+.status-offline {
+  color: #ef4444;
+}
+
+.status-unknown {
+  color: #6b7280;
+}
+
+/* 主要内容区域 */
+.chat-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 欢迎屏幕 */
+.welcome-screen {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.welcome-title {
+  font-size: 32px;
+  font-weight: 400;
+  color: #374151;
+  text-align: center;
+  margin: 0;
+  letter-spacing: -0.5px;
+}
+
+/* 消息区域 */
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.message {
+  display: flex;
+  flex-direction: column;
+  max-width: 85%;
+}
+
+.message.user {
+  align-self: flex-end;
+}
+
+.message.assistant {
+  align-self: flex-start;
+}
+
+.message-content {
+  padding: 12px 16px;
+  border-radius: 18px;
+  word-wrap: break-word;
+  line-height: 1.5;
+}
+
+.message.user .message-content {
+  background: #f9fafb;
+  color: #374151;
+  border: 1px solid #e5e7eb;
+}
+
+.message.assistant .message-content {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.message-image {
+  margin-bottom: 8px;
+}
+
+.message-image img {
+  max-width: 280px;
+  max-height: 280px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.message-text {
+  white-space: pre-wrap;
+}
+
+/* Markdown样式 */
+.message-text h1,
+.message-text h2,
+.message-text h3,
+.message-text h4,
+.message-text h5,
+.message-text h6 {
+  margin: 0.8rem 0 0.5rem 0;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.message-text h3 {
+  font-size: 1.1rem;
+  color: #1f2937;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 0.3rem;
+}
+
+.message-text p {
+  margin: 0.5rem 0;
+  line-height: 1.6;
+}
+
+.message-text ul,
+.message-text ol {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+}
+
+.message-text li {
+  margin: 0.3rem 0;
+  line-height: 1.5;
+}
+
+.message-text strong {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.message-text em {
+  font-style: italic;
+}
+
+.message-text code {
+  background: #f3f4f6;
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.25rem;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.9em;
+}
+
+.message-text pre {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin: 0.5rem 0;
+}
+
+.message-text pre code {
+  background: none;
+  padding: 0;
+}
+
+.message-text blockquote {
+  border-left: 4px solid #e5e7eb;
+  padding-left: 1rem;
+  margin: 0.5rem 0;
+  color: #6b7280;
+  font-style: italic;
+}
+
+/* 确保第一个和最后一个元素没有多余的边距 */
+.message-text > *:first-child {
+  margin-top: 0;
+}
+
+.message-text > *:last-child {
+  margin-bottom: 0;
+}
+
+.cursor {
+  animation: blink 1s infinite;
+  color: #000000;
+  font-size: 0.8em;
+}
+
+/* 在markdown内容中的光标样式 - 直接渲染在文本中 */
+.markdown-content {
+  position: relative;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* 输入区域 */
+.chat-input-area {
+  padding: 16px;
+  background: #ffffff;
+  border-top: 1px solid #e5e7eb;
+}
+
+.image-preview-wrapper {
+  margin-bottom: 12px;
+}
+
+.image-preview {
+  position: relative;
+  display: inline-block;
+  background: #f3f4f6;
+  border-radius: 12px;
+  padding: 8px;
+}
+
+.image-preview img {
+  max-width: 120px;
+  max-height: 120px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.remove-image {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ef4444;
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.remove-image:hover {
+  background: #dc2626;
+}
+
+.chat-input-wrapper {
+  max-width: 768px;
+  margin: 0 auto;
+}
+
+.chat-input {
+  display: flex;
+  align-items: flex-end;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 24px;
+  padding: 8px 12px;
+  gap: 8px;
+  transition: border-color 0.2s ease;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.chat-input:focus-within {
+  border-color: #10a37f;
+}
+
+.attachment-button {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: #9ca3af;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.attachment-button:hover:not(:disabled) {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.attachment-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.chat-input textarea {
+  flex: 1;
+  border: none;
+  background: transparent;
+  resize: none;
+  outline: none;
+  color: #374151;
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 1.5;
+  max-height: 120px;
+  min-height: 24px;
+  padding: 8px 0;
+}
+
+.chat-input textarea::placeholder {
+  color: #6b7280;
+}
+
+.chat-input textarea:disabled {
+  opacity: 0.5;
+}
+
+.send-button {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: #10a37f;
+  color: white;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.send-button:hover:not(:disabled) {
+  background: #0d8a6b;
+}
+
+.send-button:disabled {
+  background: #d1d5db;
+  cursor: not-allowed;
+}
+
+.loading-spinner {
+  animation: spin 1s linear infinite;
+  font-size: 16px;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .chat-container {
+    height: 100vh;
+  }
+  
+  .chat-top-bar {
+    padding: 8px 12px;
+  }
+  
+  .welcome-title {
+    font-size: 28px;
+  }
+  
+  .chat-messages {
+    padding: 0.75rem;
+  }
+  
+  .message {
+    max-width: 90%;
+  }
+  
+  .chat-input-area {
+    padding: 12px;
+  }
+  
+  .chat-input {
+    padding: 6px 10px;
+  }
+  
+  .chat-input textarea {
+    font-size: 16px; /* 防止iOS缩放 */
+  }
+}
+
+/* 滚动条样式 */
+.chat-messages::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}

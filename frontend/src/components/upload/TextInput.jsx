@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { Card, Input, Button, Alert, Spin } from 'antd';
+import { Card, Input, Button, Alert, Spin, message } from 'antd';
 import { FileTextOutlined, ThunderboltOutlined } from '@ant-design/icons';
 import api from '../../services/api';
 
 const { TextArea } = Input;
 
-const TextInput = ({ onParseResult, onParseError }) => {
+const TextInput = ({ onParseResult, onParseError, onImagesPaste }) => {
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -15,6 +15,64 @@ const TextInput = ({ onParseResult, onParseError }) => {
     if (error) {
       setError(null);
     }
+  };
+
+  const handlePaste = (e) => {
+    // 获取粘贴板数据
+    const clipboardData = e.clipboardData || window.clipboardData;
+    const textData = clipboardData.getData('text/plain');
+    
+    const imageFiles = [];
+    const processedFiles = new Set(); // 用于去重
+    
+    // 优先使用clipboardData.files（更直接）
+    if (clipboardData.files && clipboardData.files.length > 0) {
+      const files = Array.from(clipboardData.files);
+      files.forEach(file => {
+        if (file.type.startsWith('image/') && 
+            (file.type === 'image/jpeg' || file.type === 'image/png')) {
+          const fileKey = `${file.name}-${file.size}-${file.type}`;
+          if (!processedFiles.has(fileKey)) {
+            imageFiles.push(file);
+            processedFiles.add(fileKey);
+          }
+        }
+      });
+    }
+    
+    // 如果files为空，再检查items
+    if (imageFiles.length === 0 && clipboardData.items && clipboardData.items.length > 0) {
+      for (let i = 0; i < clipboardData.items.length; i++) {
+        const item = clipboardData.items[i];
+        
+        if (item.type.startsWith('image/') && item.kind === 'file') {
+          const file = item.getAsFile();
+          if (file && (file.type === 'image/jpeg' || file.type === 'image/png')) {
+            const fileKey = `${file.name}-${file.size}-${file.type}`;
+            if (!processedFiles.has(fileKey)) {
+              imageFiles.push(file);
+              processedFiles.add(fileKey);
+            }
+          }
+        }
+      }
+    }
+
+    // 如果有图片文件，通过回调传递给父组件
+    if (imageFiles.length > 0 && onImagesPaste) {
+      onImagesPaste(imageFiles);
+      
+      // 显示提示信息
+      message.success(`检测到 ${imageFiles.length} 张图片，已自动添加到图片上传区域`);
+    } else {
+      // 如果没有检测到图片文件，但文本中包含图片标记，给出提示
+      if (textData && textData.includes('[图片')) {
+        message.info('检测到图片标记，但未能获取到图片文件。请尝试直接复制图片或使用其他方式上传。');
+      }
+    }
+
+    // 文字内容正常处理（让默认行为继续）
+    // 这里不需要阻止默认行为，让文字正常粘贴到文本框
   };
 
   const handleParse = async () => {
@@ -68,6 +126,9 @@ const TextInput = ({ onParseResult, onParseError }) => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <FileTextOutlined />
           <span>房源文本输入</span>
+          <span style={{ fontSize: '12px', color: '#999', fontWeight: 'normal' }}>
+            （支持图文混合粘贴）
+          </span>
         </div>
       }
       style={{ marginBottom: '24px' }}
@@ -76,7 +137,8 @@ const TextInput = ({ onParseResult, onParseError }) => {
         <TextArea
           value={text}
           onChange={handleTextChange}
-          placeholder="请粘贴从微信等渠道获取的房源描述文本..."
+          onPaste={handlePaste}
+          placeholder="请粘贴从微信等渠道获取的房源描述文本（支持图文混合粘贴）..."
           rows={6}
           disabled={loading}
           style={{ fontSize: '14px' }}

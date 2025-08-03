@@ -10,6 +10,7 @@ from typing import Dict, Any, Optional, Tuple
 from openai import OpenAI
 from pydantic import BaseModel, Field
 from ..config import settings
+from ..config.prompts import DoubaoPrompts
 from ..utils.property_parser import PropertyParsingValidator, PropertyParsingFallback
 
 # 配置日志
@@ -26,6 +27,7 @@ class PropertyParsingResult(BaseModel):
     area: Optional[float] = Field(None, description="面积(平米)")
     furniture_appliances: Optional[str] = Field(None, description="家具家电配置")
     decoration_status: Optional[str] = Field(None, description="装修情况")
+    contact_phone: Optional[str] = Field(None, description="联系电话")
     confidence: float = Field(0.0, description="解析置信度(0-1)")
     validation_warnings: list = Field(default_factory=list, description="验证警告信息")
     is_fallback: bool = Field(False, description="是否使用了降级处理")
@@ -55,33 +57,7 @@ class LLMService:
     
     def _get_parsing_prompt(self, input_text: str) -> str:
         """获取房源解析的提示词模板"""
-        return f"""
-你是一个专业的房地产信息提取助手。请从以下房源描述文本中提取结构化信息，特别注意区分租房和售房：
-
-文本：{input_text}
-
-请按照以下JSON格式返回结果，确保JSON格式正确：
-{{
-    "property_type": "rent或sale",
-    "community_name": "小区名称或null",
-    "street_address": "详细地址或null", 
-    "floor_info": "楼层信息或null",
-    "price": 数字或null,
-    "room_count": "几室几厅或null",
-    "area": 数字或null,
-    "furniture_appliances": "家具家电情况或null",
-    "decoration_status": "装修情况或null",
-    "confidence": 0.95
-}}
-
-重要的类型识别规则：
-1. 租房标识词：包含"租"、"出租"、"月租"、"押金"、"月付"、"租金"等 → property_type设为"rent"
-2. 售房标识词：包含"售"、"出售"、"万元"、"总价"、"首付"、"按揭"等 → property_type设为"sale"
-3. 价格判断：几千元通常是月租金(rent)，几十万/几百万是售价(sale)
-4. 如果无法确定类型，根据价格范围判断：500-20000元可能是租金，30万-2000万可能是售价
-
-请只返回JSON格式的结果，不要包含其他文字说明。
-"""
+        return DoubaoPrompts.get_property_parsing_prompt(input_text)
 
     async def parse_property_text(self, text: str) -> PropertyParsingResult:
         """
@@ -178,6 +154,7 @@ class LLMService:
                     area=parsed_data.get("area"),
                     furniture_appliances=parsed_data.get("furniture_appliances"),
                     decoration_status=parsed_data.get("decoration_status"),
+                    contact_phone=parsed_data.get("contact_phone"),
                     confidence=parsed_data.get("confidence", 0.8),
                     is_fallback=False
                 )
@@ -257,6 +234,7 @@ class LLMService:
                 area=fallback_data.get("area"),
                 furniture_appliances=fallback_data.get("furniture_appliances"),
                 decoration_status=fallback_data.get("decoration_status"),
+                contact_phone=fallback_data.get("contact_phone"),
                 confidence=fallback_data.get("confidence", 0.3),
                 validation_warnings=["使用了降级处理机制，建议手动检查结果"],
                 is_fallback=True

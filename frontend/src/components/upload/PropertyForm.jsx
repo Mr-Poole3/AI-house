@@ -43,7 +43,8 @@ const PropertyForm = React.forwardRef(({
   initialData = null, 
   onSubmit, 
   onFieldChange,
-  loading = false 
+  loading = false,
+  pastedImages = []
 }, ref) => {
   const [form] = Form.useForm();
   
@@ -53,6 +54,8 @@ const PropertyForm = React.forwardRef(({
       form.resetFields();
       setPropertyType('rent');
       setPriceError(null);
+      // 清空图片状态
+      form.setFieldsValue({ images: [] });
     },
     getFieldsValue: () => form.getFieldsValue(),
     setFieldsValue: (values) => form.setFieldsValue(values)
@@ -271,6 +274,25 @@ const PropertyForm = React.forwardRef(({
           </Col>
         </Row>
 
+        {/* 联系信息 */}
+        <Row gutter={16}>
+          <Col xs={24} md={12}>
+            <Form.Item
+              name="contact_phone"
+              label="联系电话"
+              rules={[
+                { max: 20, message: '电话号码不能超过20个字符' },
+                { 
+                  pattern: /^1[3-9]\d{9}$|^0\d{2,3}[-\s]?\d{7,8}$|^\d{7,8}$/,
+                  message: '请输入有效的电话号码'
+                }
+              ]}
+            >
+              <Input placeholder="请输入联系电话" />
+            </Form.Item>
+          </Col>
+        </Row>
+
         {/* 价格信息 - 动态标签和验证 */}
         <Row gutter={16}>
           <Col xs={24} md={12}>
@@ -330,6 +352,17 @@ const PropertyForm = React.forwardRef(({
         </Form.Item>
 
         <Form.Item
+          name="other_info"
+          label="其他信息"
+          rules={[{ max: 1000, message: '其他信息不能超过1000个字符' }]}
+        >
+          <TextArea
+            rows={3}
+            placeholder="请填写其他重要信息，如：交通便利情况、周边配套、停车位、物业费等"
+          />
+        </Form.Item>
+
+        <Form.Item
           name="description"
           label="补充说明"
           rules={[{ max: 1000, message: '补充说明不能超过1000个字符' }]}
@@ -343,21 +376,12 @@ const PropertyForm = React.forwardRef(({
         {/* 图片上传 */}
         <Form.Item
           name="images"
-          label="房源图片"
-          rules={[
-            { 
-              validator: (_, value) => {
-                if (!value || value.length === 0) {
-                  return Promise.reject(new Error('请至少上传一张房源图片'));
-                }
-                return Promise.resolve();
-              }
-            }
-          ]}
+          label="房源图片（可选）"
         >
           <ImageUpload 
             maxCount={10}
-            disabled={loading}
+            disabled={false}
+            pastedImages={pastedImages}
           />
         </Form.Item>
 
@@ -380,14 +404,7 @@ const PropertyForm = React.forwardRef(({
         </Form.Item>
       </Form>
 
-      {/* 价格提示 */}
-      <Alert
-        message={`${currentPriceConfig.label}提示`}
-        description={`请输入真实的${currentPriceConfig.label}，系统不限制价格范围`}
-        type="info"
-        showIcon
-        style={{ marginTop: '16px' }}
-      />
+
     </Card>
   );
 });

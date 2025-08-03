@@ -7,13 +7,9 @@ import re
 import logging
 from typing import Dict, List, Tuple, Optional
 from enum import Enum
+from ..models.property import PropertyType
 
 logger = logging.getLogger(__name__)
-
-class PropertyType(Enum):
-    """房屋类型枚举"""
-    RENT = "rent"
-    SALE = "sale"
 
 class ValidationResult:
     """验证结果类"""
@@ -212,6 +208,7 @@ class PropertyParsingFallback:
                 "area": PropertyParsingFallback._extract_area(text),
                 "furniture_appliances": None,
                 "decoration_status": PropertyParsingFallback._extract_decoration(text),
+                "contact_phone": PropertyParsingFallback._extract_contact_phone(text),
                 "confidence": 0.3  # 降级处理的置信度较低
             }
             
@@ -331,5 +328,27 @@ class PropertyParsingFallback:
         for keyword in decoration_keywords:
             if keyword in text:
                 return keyword
+        
+        return None
+    
+    @staticmethod
+    def _extract_contact_phone(text: str) -> Optional[str]:
+        """提取联系电话"""
+        # 电话号码匹配模式
+        phone_patterns = [
+            r'1[3-9]\d{9}',  # 11位手机号码
+            r'(?:联系|电话|手机|☎)\s*[:：]?\s*(1[3-9]\d{9})',  # 带前缀的手机号
+            r'(\d{3}-\d{8}|\d{4}-\d{7})',  # 固定电话格式
+            r'(\d{11})',  # 11位数字
+        ]
+        
+        for pattern in phone_patterns:
+            matches = re.findall(pattern, text)
+            for match in matches:
+                # 如果是元组，取最后一个匹配项
+                phone = match if isinstance(match, str) else match[-1]
+                # 验证是否为有效手机号
+                if re.match(r'^1[3-9]\d{9}$', phone):
+                    return phone
         
         return None

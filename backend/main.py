@@ -2,7 +2,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routers import auth, properties, upload
+from .routers import auth, properties, upload, chat
 from .utils.dependencies import create_auth_middleware
 from .middleware.security import add_security_middleware
 from .utils.exceptions import add_exception_handlers
@@ -39,6 +39,7 @@ add_security_middleware(app)
 app.include_router(auth.router)
 app.include_router(properties.router)
 app.include_router(upload.router)
+app.include_router(chat.router)
 
 @app.get("/", tags=["系统"])
 async def root():

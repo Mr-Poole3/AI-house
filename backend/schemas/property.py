@@ -8,10 +8,8 @@ from datetime import datetime
 from enum import Enum
 
 
-class PropertyType(str, Enum):
-    """房屋类型枚举"""
-    SALE = "sale"  # 售房
-    RENT = "rent"  # 租房
+# 导入统一的PropertyType枚举
+from ..models.property import PropertyType
 
 
 class PropertyBase(BaseModel):
@@ -25,6 +23,7 @@ class PropertyBase(BaseModel):
     decoration_status: Optional[str] = Field(None, max_length=100, description="装修情况")
     room_count: Optional[str] = Field(None, max_length=20, description="房间数量")
     area: Optional[Decimal] = Field(None, gt=0, description="面积(平米)")
+    contact_phone: Optional[str] = Field(None, max_length=20, description="联系电话")
     description: Optional[str] = Field(None, description="原始描述文本")
     parsed_confidence: Optional[Decimal] = Field(None, ge=0, le=1, description="解析置信度")
 
@@ -44,7 +43,7 @@ class PropertyBase(BaseModel):
 
 class PropertyCreate(PropertyBase):
     """创建房源请求模式"""
-    pass
+    image_paths: Optional[List[str]] = Field(default=[], description="图片URL路径列表")
 
 
 class PropertyUpdate(BaseModel):
@@ -58,6 +57,7 @@ class PropertyUpdate(BaseModel):
     decoration_status: Optional[str] = Field(None, max_length=100)
     room_count: Optional[str] = Field(None, max_length=20)
     area: Optional[Decimal] = Field(None, gt=0)
+    contact_phone: Optional[str] = Field(None, max_length=20)
     description: Optional[str] = None
     parsed_confidence: Optional[Decimal] = Field(None, ge=0, le=1)
 
@@ -84,9 +84,21 @@ class PropertyImageResponse(BaseModel):
     mime_type: str
     is_primary: bool
     created_at: datetime
+    image_url: Optional[str] = None  # 添加image_url字段
+    thumbnail_url: Optional[str] = None  # 添加缩略图URL字段
 
     class Config:
         from_attributes = True
+
+    @staticmethod
+    def from_orm_with_urls(obj):
+        """从ORM对象创建响应，并添加URL信息"""
+        import os
+        data = PropertyImageResponse.from_orm(obj)
+        filename = os.path.basename(obj.file_path)
+        data.image_url = f"/api/upload/images/{filename}"
+        data.thumbnail_url = f"/api/upload/thumbnails/{filename}"
+        return data
 
 
 class PropertyResponse(PropertyBase):

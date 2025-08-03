@@ -18,11 +18,13 @@ CREATE TABLE properties (
     street_address VARCHAR(200) NOT NULL COMMENT '街道地址',
     floor_info VARCHAR(50) COMMENT '楼层信息',
     price DECIMAL(12,2) NOT NULL COMMENT '价格(租房为月租金，售房为总价)',
-    property_type ENUM('sale', 'rent') NOT NULL COMMENT '房屋类型(sale=售房, rent=租房)',
+    property_type ENUM('SALE', 'RENT') NOT NULL COMMENT '房屋类型(SALE=售房, RENT=租房)',
     furniture_appliances TEXT COMMENT '家具家电配置',
     decoration_status VARCHAR(100) COMMENT '装修情况',
     room_count VARCHAR(20) COMMENT '房间数量(如: 2室1厅)',
     area DECIMAL(8,2) COMMENT '面积(平米)',
+    contact_phone VARCHAR(20) COMMENT '联系电话',
+    other_info TEXT COMMENT '其他信息(未分类内容)',
     description TEXT COMMENT '原始描述文本',
     parsed_confidence DECIMAL(3,2) COMMENT '解析置信度',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -73,10 +75,15 @@ INDEX idx_user (user_id),
     INDEX idx_expires (expires_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- 如果表已存在，添加新列 (兼容性处理)
+ALTER TABLE properties 
+ADD COLUMN IF NOT EXISTS contact_phone VARCHAR(20) COMMENT '联系电话' AFTER area,
+ADD COLUMN IF NOT EXISTS other_info TEXT COMMENT '其他信息(未分类内容)' AFTER contact_phone;
+
 -- 插入默认管理员用户 (密码: admin123, 使用bcrypt哈希)
 INSERT INTO
     users (username, password_hash)
 VALUES (
         'admin',
-        '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj3bp.Gm.F5e'
+        '$2b$12$jiHpw7OU8EzV465gixShV.OQUnecnCSFJptyfxg0atL/qHOkDiRtW'
     );

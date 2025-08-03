@@ -133,6 +133,24 @@ const PropertyDetail = () => {
     }
   };
 
+  /**
+   * 转换图片URL为完整的后端URL
+   */
+  const getFullImageUrl = (imageUrl) => {
+    if (!imageUrl) return '';
+    
+    // 如果已经是完整URL，直接返回
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+      return imageUrl;
+    }
+    
+    // 如果是相对URL，转换为完整的后端URL
+    const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+    const apiBaseUrl = baseUrl.replace('/api', ''); // 移除/api后缀
+    
+    return `${apiBaseUrl}${imageUrl}`;
+  };
+
   // 组件挂载时加载数据
   useEffect(() => {
     if (id) {
@@ -163,24 +181,26 @@ const PropertyDetail = () => {
     <div className="container">
       {/* 页面头部 */}
       <div className="page-header">
-        <Space>
+        <div className="page-header-left">
           <Button 
             icon={<ArrowLeftOutlined />} 
             onClick={handleBack}
+            size="large"
           >
             返回
           </Button>
           <Title level={2} style={{ margin: 0 }}>
             房源详情
           </Title>
-        </Space>
+        </div>
         
         {!editMode && (
-          <Space>
+          <div className="page-header-right">
             <Button
               type="primary"
               icon={<EditOutlined />}
               onClick={handleEdit}
+              size="large"
             >
               编辑
             </Button>
@@ -188,10 +208,11 @@ const PropertyDetail = () => {
               danger
               icon={<DeleteOutlined />}
               onClick={handleDelete}
+              size="large"
             >
               删除
             </Button>
-          </Space>
+          </div>
         )}
       </div>
 
@@ -206,46 +227,47 @@ const PropertyDetail = () => {
           />
         ) : (
           <>
-            {/* 基本信息卡片 */}
-            <Card style={{ marginBottom: 16 }}>
-          <Row gutter={[24, 24]}>
-            <Col span={24}>
-              <Space size="large">
-                <Title level={3} style={{ margin: 0 }}>
+            {/* 房源头部信息 */}
+            <div className="property-detail-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '8px' }}>
+                <Title level={1} className="property-detail-title">
                   {property.community_name}
                 </Title>
                 {getPropertyTypeTag(property.property_type)}
-              </Space>
-            </Col>
-            
-            <Col span={24}>
-              <Space size="large" wrap>
-                <Space>
-                  <EnvironmentOutlined style={{ color: '#1890ff' }} />
-                  <Text>{property.street_address}</Text>
-                </Space>
+              </div>
+              
+              <div className="property-detail-meta">
+                <div className="property-detail-meta-item">
+                  <EnvironmentOutlined />
+                  <Text style={{ color: 'white' }}>{property.street_address}</Text>
+                </div>
                 
-                <Space>
-                  <DollarOutlined style={{ color: '#52c41a' }} />
-                  <Text strong style={{ fontSize: '18px', color: '#f5222d' }}>
+                <div className="property-detail-meta-item">
+                  <DollarOutlined />
+                  <Text className="property-detail-price" style={{ color: 'white' }}>
                     {formatPrice(property.price, property.property_type)}
                   </Text>
-                </Space>
+                </div>
                 
                 {property.area && (
-                  <Space>
-                    <HomeOutlined style={{ color: '#722ed1' }} />
-                    <Text>{property.area} 平米</Text>
-                  </Space>
+                  <div className="property-detail-meta-item">
+                    <HomeOutlined />
+                    <Text style={{ color: 'white' }}>{property.area} 平米</Text>
+                  </div>
                 )}
-              </Space>
-            </Col>
-          </Row>
-        </Card>
+                
+                {property.room_count && (
+                  <div className="property-detail-meta-item">
+                    <HomeOutlined />
+                    <Text style={{ color: 'white' }}>{property.room_count} 室</Text>
+                  </div>
+                )}
+              </div>
+            </div>
 
         {/* 详细信息 */}
-        <Card title="详细信息" style={{ marginBottom: 16 }}>
-          <Descriptions column={2} bordered>
+        <Card title="详细信息" className="property-detail-card">
+          <Descriptions column={{ xs: 1, sm: 1, md: 2 }} bordered>
             <Descriptions.Item label="小区名称">
               {property.community_name}
             </Descriptions.Item>
@@ -278,9 +300,19 @@ const PropertyDetail = () => {
                 {property.decoration_status}
               </Descriptions.Item>
             )}
+            {property.contact_phone && (
+              <Descriptions.Item label="联系电话">
+                {property.contact_phone}
+              </Descriptions.Item>
+            )}
             {property.furniture_appliances && (
               <Descriptions.Item label="家具家电" span={2}>
                 {property.furniture_appliances}
+              </Descriptions.Item>
+            )}
+            {property.other_info && (
+              <Descriptions.Item label="其他信息" span={2}>
+                {property.other_info}
               </Descriptions.Item>
             )}
             {property.description && (
@@ -299,22 +331,21 @@ const PropertyDetail = () => {
 
         {/* 房源图片 */}
         {property.images && property.images.length > 0 && (
-          <Card title="房源图片">
-            <Row gutter={[16, 16]}>
+          <Card title="房源图片" className="property-detail-card">
+            <div className="property-image-grid">
               {property.images.map((image, index) => (
-                <Col xs={24} sm={12} md={8} lg={6} key={image.id || index}>
+                <div key={image.id || index} className="property-image-item">
                   <Image
-                    src={image.image_url}
+                    src={getFullImageUrl(image.image_url)}
                     alt={`房源图片 ${index + 1}`}
                     style={{ 
                       width: '100%', 
-                      height: '200px', 
-                      objectFit: 'cover',
-                      borderRadius: '8px'
+                      height: '100%', 
+                      objectFit: 'cover'
                     }}
                     placeholder={
                       <div style={{ 
-                        height: '200px', 
+                        height: '100%', 
                         display: 'flex', 
                         alignItems: 'center', 
                         justifyContent: 'center',
@@ -324,9 +355,9 @@ const PropertyDetail = () => {
                       </div>
                     }
                   />
-                </Col>
+                </div>
               ))}
-            </Row>
+            </div>
           </Card>
         )}
           </>

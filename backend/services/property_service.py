@@ -4,8 +4,10 @@
 from sqlalchemy.orm import Session
 from typing import Optional, List, Tuple
 from decimal import Decimal
+import os
 
 from ..models.property import Property, PropertyType
+from ..models.property_image import PropertyImage
 from ..schemas.property import PropertyCreate, PropertyUpdate, PropertySearchParams
 from ..utils.exceptions import NotFoundError, ValidationError
 
@@ -17,19 +19,73 @@ class PropertyService:
     def create_property(db: Session, property_data: PropertyCreate) -> Property:
         """创建房源"""
         try:
-            # 转换PropertyType枚举
-            property_type = PropertyType(property_data.property_type.value)
+            # 转换PropertyType枚举 - 如果已经是枚举类型就直接使用，如果是字符串则转换
+            if isinstance(property_data.property_type, PropertyType):
+                property_type = property_data.property_type
+            else:
+                property_type = PropertyType(property_data.property_type)
             
-            # 创建房源数据字典
-            property_dict = property_data.dict()
+            # 提取图片路径
+            image_paths = property_data.image_paths or []
+            
+            # 创建房源数据字典（排除image_paths）
+            property_dict = property_data.dict(exclude={'image_paths'})
             property_dict['property_type'] = property_type
             
             # 创建房源
             property_obj = Property.create(db, **property_dict)
+            
+            # 如果有图片路径，创建图片关联
+            if image_paths:
+                PropertyService._associate_images_to_property(db, property_obj.id, image_paths)
+            
+            # 重新加载房源以包含图片信息
+            db.refresh(property_obj)
             return property_obj
             
         except Exception as e:
+            db.rollback()
             raise ValidationError(f"创建房源失败: {str(e)}")
+    
+    @staticmethod
+    def _associate_images_to_property(db: Session, property_id: int, image_paths: List[str]) -> None:
+        """将图片关联到房源"""
+        for i, image_path in enumerate(image_paths):
+            try:
+                # 从URL中提取文件名
+                if image_path.startswith('/api/upload/images/'):
+                    filename = image_path.replace('/api/upload/images/', '')
+                else:
+                    filename = os.path.basename(image_path)
+                
+                # 构建文件路径
+                file_path = f"uploads/{filename}"
+                full_path = os.path.join(os.getcwd(), file_path)
+                
+                # 验证文件是否存在
+                if not os.path.exists(full_path):
+                    print(f"警告: 图片文件不存在: {full_path}")
+                    continue
+                
+                # 获取文件信息
+                file_size = os.path.getsize(full_path)
+                file_extension = filename.lower().split('.')[-1] if '.' in filename else 'jpg'
+                mime_type = f"image/{file_extension}"
+                
+                # 创建图片记录
+                PropertyImage.create(
+                    db=db,
+                    property_id=property_id,
+                    file_path=file_path,
+                    file_name=filename,
+                    file_size=file_size,
+                    mime_type=mime_type,
+                    is_primary=(i == 0)  # 第一张图片设为主图
+                )
+                
+            except Exception as e:
+                print(f"关联图片失败 {image_path}: {str(e)}")
+                continue
     
     @staticmethod
     def get_property_by_id(db: Session, property_id: int) -> Property:
@@ -49,7 +105,11 @@ class PropertyService:
         for field, value in property_data.dict(exclude_unset=True).items():
             if value is not None:
                 if field == 'property_type':
-                    update_data[field] = PropertyType(value.value)
+                    # 转换PropertyType枚举 - 如果已经是枚举类型就直接使用，如果是字符串则转换
+                    if isinstance(value, PropertyType):
+                        update_data[field] = value
+                    else:
+                        update_data[field] = PropertyType(value)
                 else:
                     update_data[field] = value
         
@@ -70,7 +130,10 @@ class PropertyService:
         # 转换PropertyType枚举
         property_type = None
         if search_params.property_type:
-            property_type = PropertyType(search_params.property_type.value)
+            if isinstance(search_params.property_type, PropertyType):
+                property_type = search_params.property_type
+            else:
+                property_type = PropertyType(search_params.property_type)
         
         # 计算偏移量
         skip = (search_params.page - 1) * search_params.size

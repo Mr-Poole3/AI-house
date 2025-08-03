@@ -28,6 +28,7 @@ class Property(Base):
     decoration_status = Column(String(100), comment="装修情况")
     room_count = Column(String(20), comment="房间数量")
     area = Column(DECIMAL(8, 2), comment="面积(平米)")
+    contact_phone = Column(String(20), comment="联系电话")
     description = Column(Text, comment="原始描述文本")
     parsed_confidence = Column(DECIMAL(3, 2), comment="解析置信度")
     created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
@@ -52,6 +53,7 @@ class Property(Base):
             "decoration_status": self.decoration_status,
             "room_count": self.room_count,
             "area": float(self.area) if self.area else None,
+            "contact_phone": self.contact_phone,
             "description": self.description,
             "parsed_confidence": float(self.parsed_confidence) if self.parsed_confidence else None,
             "created_at": self.created_at.isoformat() if self.created_at else None,

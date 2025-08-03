@@ -1,6 +1,6 @@
 import React from 'react';
 import { Layout, Menu, Button, message } from 'antd';
-import { LogoutOutlined, UploadOutlined, SearchOutlined } from '@ant-design/icons';
+import { LogoutOutlined, UploadOutlined, SearchOutlined, MessageOutlined } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth';
 
@@ -33,6 +33,12 @@ const Header = () => {
       icon: <SearchOutlined />,
       label: '房源检索',
       onClick: () => navigate('/search')
+    },
+    {
+      key: '/chat',
+      icon: <MessageOutlined />,
+      label: 'AI聊天',
+      onClick: () => navigate('/chat')
     }
   ];
 
@@ -61,7 +67,7 @@ const Header = () => {
           items={menuItems}
           style={{ 
             border: 'none',
-            minWidth: '200px'
+            minWidth: '300px'
           }}
         />
       </div>
