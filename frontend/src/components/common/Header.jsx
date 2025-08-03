@@ -49,14 +49,21 @@ const Header = () => {
       justifyContent: 'space-between',
       background: '#fff',
       borderBottom: '1px solid #f0f0f0',
-      padding: '0 24px'
+      padding: '0 24px',
+      height: '64px'
     }}>
-      <div style={{ display: 'flex', alignItems: 'center' }}>
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center',
+        flex: 1,
+        minWidth: 0 // 防止flex溢出
+      }}>
         <div style={{ 
           fontSize: '18px', 
           fontWeight: 'bold', 
-          marginRight: '32px',
-          color: '#1890ff'
+          marginRight: '24px',
+          color: '#1890ff',
+          whiteSpace: 'nowrap'
         }}>
           房屋中介管理系统
         </div>
@@ -67,8 +74,12 @@ const Header = () => {
           items={menuItems}
           style={{ 
             border: 'none',
-            minWidth: '300px'
+            minWidth: '360px',
+            flex: 1,
+            lineHeight: '64px'
           }}
+          overflowedIndicator={null}
+          inlineCollapsed={false}
         />
       </div>
       
@@ -77,7 +88,11 @@ const Header = () => {
         icon={<LogoutOutlined />}
         onClick={handleLogout}
         loading={loading}
-        style={{ color: '#666' }}
+        style={{ 
+          color: '#666',
+          marginLeft: '16px',
+          flexShrink: 0
+        }}
       >
         登出
       </Button>

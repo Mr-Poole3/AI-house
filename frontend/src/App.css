@@ -354,3 +354,95 @@
     display: none;
   }
 }
+
+/* 导航菜单样式优化 - 确保菜单项始终可见 */
+.ant-layout-header {
+  position: relative;
+  z-index: 1000;
+}
+
+.ant-layout-header .ant-menu {
+  border-bottom: none !important;
+  background: transparent !important;
+}
+
+.ant-layout-header .ant-menu-horizontal {
+  line-height: 64px !important;
+}
+
+.ant-layout-header .ant-menu-item {
+  display: flex !important;
+  align-items: center;
+  font-weight: 500;
+  margin: 0 8px !important;
+  padding: 0 16px !important;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.ant-layout-header .ant-menu-item:hover {
+  background-color: #f0f2f5 !important;
+  color: #1890ff !important;
+}
+
+.ant-layout-header .ant-menu-item-selected {
+  background-color: #e6f7ff !important;
+  color: #1890ff !important;
+  font-weight: 600;
+}
+
+.ant-layout-header .ant-menu-item .anticon {
+  margin-right: 8px;
+  font-size: 14px;
+}
+
+/* 防止菜单项被隐藏 */
+.ant-menu-overflow {
+  display: flex !important;
+}
+
+.ant-menu-overflow-item {
+  display: flex !important;
+}
+
+.ant-menu-submenu-popup {
+  display: none !important;
+}
+
+/* 强制显示所有菜单项，不使用省略号 */
+.ant-menu-horizontal .ant-menu-overflow-item {
+  flex-shrink: 0 !important;
+}
+
+.ant-menu-horizontal .ant-menu-item {
+  flex-shrink: 0 !important;
+}
+
+/* 移动端导航优化 */
+@media (max-width: 1024px) {
+  .ant-layout-header .ant-menu-item {
+    margin: 0 4px !important;
+    padding: 0 12px !important;
+  }
+  
+  .ant-layout-header .ant-menu-item .anticon {
+    margin-right: 6px;
+  }
+}
+
+@media (max-width: 768px) {
+  .ant-layout-header {
+    padding: 0 16px !important;
+  }
+  
+  .ant-layout-header .ant-menu-item {
+    margin: 0 2px !important;
+    padding: 0 8px !important;
+    font-size: 14px;
+  }
+  
+  .ant-layout-header .ant-menu-item .anticon {
+    margin-right: 4px;
+    font-size: 12px;
+  }
+}
