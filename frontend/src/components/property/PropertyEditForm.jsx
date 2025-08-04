@@ -14,6 +14,7 @@ import {
 import { SaveOutlined, CloseOutlined } from '@ant-design/icons';
 import { PROPERTY_TYPES } from '../../utils/constants';
 import propertyApiService from '../../services/propertyApi';
+import { safeFormValue } from '../../utils/displayUtils';
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -34,7 +35,7 @@ const PropertyEditForm = ({ property, onSave, onCancel, loading = false }) => {
         floor_info: property.floor_info,
         price: property.price,
         property_type: property.property_type,
-        contact_phone: property.contact_phone,
+        contact_phone: safeFormValue(property.contact_phone), // 安全处理null值
         furniture_appliances: property.furniture_appliances,
         decoration_status: property.decoration_status,
         room_count: property.room_count,
@@ -237,9 +238,17 @@ const PropertyEditForm = ({ property, onSave, onCancel, loading = false }) => {
               name="contact_phone"
               rules={[
                 { max: 20, message: '电话号码不能超过20个字符' },
-                { 
-                  pattern: /^1[3-9]\d{9}$|^0\d{2,3}[-\s]?\d{7,8}$|^\d{7,8}$/,
-                  message: '请输入有效的电话号码'
+                {
+                  validator: (_, value) => {
+                    if (!value || value.trim() === '') {
+                      return Promise.resolve(); // 允许空值
+                    }
+                    const phonePattern = /^1[3-9]\d{9}$|^0\d{2,3}[-\s]?\d{7,8}$|^\d{7,8}$/;
+                    if (phonePattern.test(value.trim())) {
+                      return Promise.resolve();
+                    }
+                    return Promise.reject(new Error('请输入有效的电话号码'));
+                  }
                 }
               ]}
             >

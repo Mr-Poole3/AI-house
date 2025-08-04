@@ -26,6 +26,7 @@ import {
 import propertyApiService from '../services/propertyApi';
 import PropertyEditForm from '../components/property/PropertyEditForm';
 import { PROPERTY_TYPES } from '../utils/constants';
+import { formatPhoneDisplay, isEmpty } from '../utils/displayUtils';
 
 const { Title, Text } = Typography;
 const { confirm } = Modal;
@@ -300,9 +301,9 @@ const PropertyDetail = () => {
                 {property.decoration_status}
               </Descriptions.Item>
             )}
-            {property.contact_phone && (
+            {!isEmpty(property.contact_phone) && (
               <Descriptions.Item label="联系电话">
-                {property.contact_phone}
+                {formatPhoneDisplay(property.contact_phone)}
               </Descriptions.Item>
             )}
             {property.furniture_appliances && (

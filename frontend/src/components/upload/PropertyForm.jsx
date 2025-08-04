@@ -20,6 +20,7 @@ import {
   InfoCircleOutlined 
 } from '@ant-design/icons';
 import ImageUpload from './ImageUpload';
+import { safeFormValue } from '../../utils/displayUtils';
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -78,12 +79,13 @@ const PropertyForm = React.forwardRef(({
     if (initialData) {
       const formData = {
         ...initialData,
-        property_type: initialData.property_type || 'rent'
+        property_type: initialData.property_type || 'rent',
+        contact_phone: safeFormValue(initialData.contact_phone) // 安全处理null值
       };
-      
+
       setPropertyType(formData.property_type);
       form.setFieldsValue(formData);
-      
+
       // 验证价格范围
       if (formData.price) {
         validatePrice(formData.price, formData.property_type);
@@ -282,13 +284,21 @@ const PropertyForm = React.forwardRef(({
               label="联系电话"
               rules={[
                 { max: 20, message: '电话号码不能超过20个字符' },
-                { 
-                  pattern: /^1[3-9]\d{9}$|^0\d{2,3}[-\s]?\d{7,8}$|^\d{7,8}$/,
-                  message: '请输入有效的电话号码'
+                {
+                  validator: (_, value) => {
+                    if (!value || value.trim() === '') {
+                      return Promise.resolve(); // 允许空值
+                    }
+                    const phonePattern = /^1[3-9]\d{9}$|^0\d{2,3}[-\s]?\d{7,8}$|^\d{7,8}$/;
+                    if (phonePattern.test(value.trim())) {
+                      return Promise.resolve();
+                    }
+                    return Promise.reject(new Error('请输入有效的电话号码'));
+                  }
                 }
               ]}
             >
-              <Input placeholder="请输入联系电话" />
+              <Input placeholder="请输入联系电话（可选）" />
             </Form.Item>
           </Col>
         </Row>
